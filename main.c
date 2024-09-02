@@ -5,28 +5,47 @@
 #include <math.h>
 
 
-const int map[20][20]= {
-    {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+const int mapSize = 10;
+
+const int map[10][10]= {
+    {1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 1, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
+
+float distanceVec(Vector2 p1, Vector2 p2){
+    return sqrtf(powf(p2.x - p1.x, 2.0f) + powf(p2.y - p1.y, 2.0f));
+}
+
+void drawGrid(Vector2 cellSize, int screenWidth, int screenHeight)
+{
+    for (int i = 0; i < screenWidth; i += cellSize.x)
+    {
+        DrawLine(i, 0, i, screenHeight, BLACK);
+    }
+    for (int i = 0; i < screenHeight; i += cellSize.y)
+    {
+        DrawLine(0, i, screenWidth, i, BLACK);
+    }
+
+    for (size_t i = 0; i < mapSize; i++)
+    {
+        for (size_t j = 0; j < mapSize; j++)
+        {
+            if(map[i][j] == 1){
+                DrawRectangle(j * cellSize.x, i * cellSize.y, cellSize.x, cellSize.y, LIGHTGRAY);
+            }
+        }
+        
+    }
+}
 
 bool borderhit(Vector2 point, Vector2 cellSize, int screenWidth, int screenHeight){
     if (point.x < 0 || point.x > screenWidth || point.y < 0 || point.y > screenHeight) return true;
@@ -55,8 +74,8 @@ bool hittingWall(Vector2 cellSize, Vector2 p1, Vector2 p2){
     
     Vector2 d = distance(p1, p2);
     Vector2 cell = {
-       (snap(p2.x, d.x, cellSize.x) / cellSize.x) - (d.x > 0 ? 1 : 0), 
-       (snap(p2.y, d.y, cellSize.y) / cellSize.y) - (d.y > 0 ? 1 : 0)
+        (snap(p2.x, d.x, cellSize.x) / cellSize.x) - (d.x > 0 ? 1 : 0), 
+        (snap(p2.y, d.y, cellSize.y) / cellSize.y) - (d.y > 0 ? 1 : 0)
         
     };
 
@@ -64,139 +83,119 @@ bool hittingWall(Vector2 cellSize, Vector2 p1, Vector2 p2){
     else return false;
 };
 
-void drawGrid(Vector2 cellSize, int screenWidth, int screenHeight)
-{
-    for (int i = 0; i < screenWidth; i += cellSize.x)
-    {
-        DrawLine(i, 0, i, screenHeight, BLACK);
-    }
-    for (int i = 0; i < screenHeight; i += cellSize.y)
-    {
-        DrawLine(0, i, screenWidth, i, BLACK);
-    }
 
-    for (size_t i = 0; i < 20; i++)
-    {
-        for (size_t j = 0; j < 20; j++)
-        {
-            if(map[i][j] == 1){
-                DrawRectangle(j * cellSize.x, i * cellSize.y, cellSize.x, cellSize.y, LIGHTGRAY);
-            }
-        }
-        
-    }
-    
-    
-}
-
-float distanceVec(Vector2 p1, Vector2 p2){
-    return sqrtf(powf(p2.x - p1.x, 2.0f) + powf(p2.y - p1.y, 2.0f));
-}
-
-
-Vector2 drawNextPoint(Vector2 cellsize, Vector2 p1, Vector2 p2){
-
-    Vector2 nPoint1, nPoint2;
-
+Vector2 drawNextPoint(Vector2 p1, Vector2 p2, Vector2 cellSize){
     /*
-    y1 = x1 * m + b
-    y2 = x2 * m + b
+        y1 = x1 * m + b
+        y2 = x2 * m + b
 
-    m = (y2 - y1) / (x2 - x1)
-    y3 = x3 * m + b
+        m =  (y2 - y1) / (x2 - x1)
+        y3 = x3 * m + b
 
+        cases:
+        - dx = 0: line is vertical so we snap to the y axis
+        - dx != 0:
+            - m = 0: line is horizontal so we snap to the x axis
+            - m != 0: line is diagonal so we snap to the x and y axis
     */
+   Vector2 nPoint1;
 
-    float dx = p2.x - p1.x;
-    float dy = p2.y - p1.y;
+   float dx = p2.x - p1.x;
+   float dy = p2.y - p1.y;
+   float m = dy / dx;
+   float b = p1.y - m * p1.x;
 
-    float m = dy / dx;
-    float b = p1.y - m * p1.x;
 
-    if (m != 0){
-        nPoint1.x = snap(p2.x, dx, cellsize.x);
+   if(dx == 0)return (Vector2){p2.x, snap(p2.y, dy, cellSize.y)};
+   else{
+    if(m != 0){
+        Vector2 nPoint2;
+        nPoint1.x = snap(p2.x, dx, cellSize.x);
         nPoint1.y = nPoint1.x * m + b;
 
-        nPoint2.y = snap(p2.y, dy, cellsize.y);
+        nPoint2.y = snap(p2.y, dy, cellSize.y);
         nPoint2.x = (nPoint2.y - b) / m;
 
         if (distanceVec(p2, nPoint1) < distanceVec(p2, nPoint2)) return nPoint1;
         else return nPoint2;
     }else{
-        nPoint1.y = snap(p2.y, dy, cellsize.y);
-        nPoint1.x = p2.x;
-        return nPoint1;
+        
+        nPoint1.x = snap(p2.x, dx, cellSize.x);
+        nPoint1.y = p2.y;
     }
-
+   }
+    
 }
 
-int main(void)
-{
-    //srand(time(NULL));
+void drawRay(Vector2 cellSize, Vector2 p1, Vector2 p2, int mapWidth, int mapHeight){
+    Vector2 nPoint1 = drawNextPoint(p1, p2, cellSize);
+    DrawCircleV(nPoint1, 2, GREEN);
+    while(!hittingWall(cellSize, p1, nPoint1) && !borderhit(nPoint1, cellSize, mapWidth, mapHeight)){
+        Vector2 nPoint2 = drawNextPoint(p2, nPoint1, cellSize);
+        DrawCircleV(nPoint2, 2, GREEN);
+        nPoint1 = nPoint2;
+    }
+}
+
+void rayFOV(Vector2 cellSize, Vector2 p1, int mapWidth, int mapHeight, float FOV){
+    Vector2 helperPoint = {p1.x, p1.y - 5};
     
-    // Initialize the window
-    const int screenPx = 80; 
-    const int screenWidth  = screenPx * 16; //1280
-    const int screenHeight = screenPx * 9; //720
+    float dy = distance(helperPoint, p1).y;
 
-    //cell Size
-    Vector2 cellSize = {screenWidth / 20, screenHeight / 20};
+    Vector2 pG = {p1.x - (dy / tanf(FOV)), helperPoint.y};
+    Vector2 pD = {(dy / tanf(FOV)) + p1.x, helperPoint.y};
 
+    for (int x = (int) pG.x; x <= (int) pD.x; x++)
+    {
+        drawRay(cellSize, p1, (Vector2){x, pG.y}, mapWidth, mapHeight);
+    }
+    
+}
+
+
+int main(void){
+
+    //init window
+    const int screenPx = 80;
+    const int screenWidth = screenPx * 16;
+    const int screenHeight = screenPx * 9;
+
+    // Vector2 cellSize = {15, 15};
+    Vector2 cellSize = {screenWidth / mapSize, screenHeight / mapSize};
+    const Vector2 minimapSize = {cellSize.x * mapSize, cellSize.y * mapSize};
+
+
+    //Vector2 point = {1054, 233};
     Vector2 point = {400, 600};
-
-    Vector2 playerPos = {0, 0};
+    Vector2 playerPos = point;
 
     InitWindow(screenWidth, screenHeight, "My Raylib Window");
 
-    printf("MAP[0][1] SHOULD BE 1, IT IS IN FACT: %d\n", map[0][1]);
-
-    // Main game loop
-    while (!WindowShouldClose())
-    {
-        // Update
-        // Draw
+    while (!WindowShouldClose()){
         BeginDrawing();
         ClearBackground(RAYWHITE);
-        
+
+        // drawGrid(cellSize, minimapSize.x, minimapSize.y);
         drawGrid(cellSize, screenWidth, screenHeight);
 
-        DrawCircleV(point, 10, RED);
-        
+        DrawCircleV(point, 5, RED);
+
         playerPos = (Vector2) {GetMouseX(), GetMouseY()};
-        DrawCircle(playerPos.x, playerPos.y, 10, RED);
+        DrawCircle(playerPos.x, playerPos.y, 2, RED);
 
         DrawLineV(point, playerPos, BLUE);
 
-        //drawNextPoint(cellSize, point, playerPos);
-        Vector2 p2 = drawNextPoint(cellSize, point, playerPos);
-        DrawCircleV(p2, 10, GREEN);
+        Vector2 helperPoint = {400, 590};
+        DrawCircleV(helperPoint, 5, YELLOW);
 
-        bool wallhit = false;
-        while (!wallhit && !borderhit(p2, cellSize, screenWidth, screenHeight))
-        {
-            Vector2 p3 = drawNextPoint(cellSize, playerPos, p2);
-            DrawCircleV(p3, 10, GREEN);
-            if (hittingWall(cellSize, p2, p3)){
-                wallhit = true;
-                break;
-            }else{
-                p2 = p3;
-            }
-        }
-        
+        float FOV = 30 * PI / 180;
 
-
-        
-
-        //DrawRectangleV((Vector2) {cellSize.x * mouseCell.x , mouseCell.y * cellSize.y}, cellSize , LIGHTGRAY);
-        
-
-
+        rayFOV(cellSize, point, screenWidth, screenHeight, FOV);
         EndDrawing();
     }
 
-    // Close the window
     CloseWindow();
 
     return 0;
+
 }
