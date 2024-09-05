@@ -5,6 +5,12 @@
 #include <math.h>
 
 
+typedef struct {
+    Vector2 point;
+    float direction;
+} player;
+
+
 const int mapSize = 10;
 
 const int map[10][10]= {
@@ -129,26 +135,54 @@ Vector2 drawNextPoint(Vector2 p1, Vector2 p2, Vector2 cellSize){
 
 void drawRay(Vector2 cellSize, Vector2 p1, Vector2 p2, int mapWidth, int mapHeight){
     Vector2 nPoint1 = drawNextPoint(p1, p2, cellSize);
-    DrawCircleV(nPoint1, 2, GREEN);
+    DrawCircleV(nPoint1, 5, GREEN);
     while(!hittingWall(cellSize, p1, nPoint1) && !borderhit(nPoint1, cellSize, mapWidth, mapHeight)){
         Vector2 nPoint2 = drawNextPoint(p2, nPoint1, cellSize);
-        DrawCircleV(nPoint2, 2, GREEN);
+        DrawCircleV(nPoint2, 5, GREEN);
         nPoint1 = nPoint2;
     }
 }
 
-void rayFOV(Vector2 cellSize, Vector2 p1, int mapWidth, int mapHeight, float FOV){
-    Vector2 helperPoint = {p1.x, p1.y - 5};
+float toRad(float angle){
+    return angle * PI / 180;
+}
+
+Vector2 helperPointFromAngle(Vector2 point, float angle, int distance){
+    Vector2 newPoint = {0, 0};
+    newPoint.x = point.x + cos(angle) * distance;
+    newPoint.y = point.y + sin(angle) * distance;
+    return newPoint;
+}
+
+void rayFOV(Vector2 cellSize, player p1, int mapWidth, int mapHeight, float FOV){
+    Vector2 helperPoint = helperPointFromAngle(p1.point, toRad(p1.direction), 30);
+    
+    Vector2 pG = helperPointFromAngle(p1.point, toRad(p1.direction) - FOV, 30);
+    DrawCircleV(pG, 5, GREEN);
+
+    Vector2 pD = helperPointFromAngle(p1.point, toRad(p1.direction) + FOV, 30);
+    DrawCircleV(pD, 5, BLUE);
+
+    for (float x = toRad(p1.direction) - FOV; x <= toRad(p1.direction) + FOV; x+= toRad(1))
+    {
+        drawRay(cellSize, p1.point, helperPointFromAngle(p1.point, x, 30), mapWidth, mapHeight);
+    }
+    
+}
+
+void drawFOV(Vector2 p1, float playerAngle, float FOV){
+    Vector2 helperPoint = helperPointFromAngle(p1, playerAngle, 30);
     
     float dy = distance(helperPoint, p1).y;
 
-    Vector2 pG = {p1.x - (dy / tanf(FOV)), helperPoint.y};
-    Vector2 pD = {(dy / tanf(FOV)) + p1.x, helperPoint.y};
+    //Vector2 pG = {p1.x - (dy / tanf(FOV)), helperPoint.y};
+    Vector2 pG = helperPointFromAngle(p1, playerAngle - FOV, 30);
+    DrawCircleV(pG, 5, GREEN);
+    // Vector2 pD = {(dy / tanf(FOV)) + p1.x, helperPoint.y};
+    Vector2 pD = helperPointFromAngle(p1, playerAngle + FOV, 30);
+    DrawCircleV(pD, 5, BLUE);
 
-    for (int x = (int) pG.x; x <= (int) pD.x; x++)
-    {
-        drawRay(cellSize, p1, (Vector2){x, pG.y}, mapWidth, mapHeight);
-    }
+    DrawTriangleLines(p1, pD, pG, MAGENTA);
     
 }
 
@@ -165,9 +199,11 @@ int main(void){
     const Vector2 minimapSize = {cellSize.x * mapSize, cellSize.y * mapSize};
 
 
+    player p1 = {{578, 600}, -100};
+
     //Vector2 point = {1054, 233};
-    Vector2 point = {400, 600};
-    Vector2 playerPos = point;
+    // Vector2 point = {400, 600};
+    // Vector2 playerPos = point;
 
     InitWindow(screenWidth, screenHeight, "My Raylib Window");
 
@@ -178,19 +214,16 @@ int main(void){
         // drawGrid(cellSize, minimapSize.x, minimapSize.y);
         drawGrid(cellSize, screenWidth, screenHeight);
 
-        DrawCircleV(point, 5, RED);
+        DrawCircleV(p1.point, 5, RED);
 
-        playerPos = (Vector2) {GetMouseX(), GetMouseY()};
-        DrawCircle(playerPos.x, playerPos.y, 2, RED);
-
-        DrawLineV(point, playerPos, BLUE);
-
-        Vector2 helperPoint = {400, 590};
-        DrawCircleV(helperPoint, 5, YELLOW);
+        //Vector2 helperPoint = {400, 590};
+        //DrawCircleV(helperPoint, 5, YELLOW);
 
         float FOV = 30 * PI / 180;
 
-        rayFOV(cellSize, point, screenWidth, screenHeight, FOV);
+        rayFOV(cellSize, p1, screenWidth, screenHeight, FOV);
+        //drawFOV(p1.point, toRad(p1.direction), FOV);
+        
         EndDrawing();
     }
 
