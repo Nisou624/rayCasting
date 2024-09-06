@@ -10,6 +10,8 @@
                 "${file}",
                 "-o",
                 "${fileDirname}/exec/${fileBasenameNoExtension}",
+                "-L${fileDirname}/lib",
+                "-lraycast",
                 "-lraylib",
                 "-lm"
             ],
