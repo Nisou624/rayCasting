@@ -28,6 +28,44 @@ void drawPoint(Vector2 point, Vector2 minimapSize){
     }
 }
 
+void playerMouvement(player *player, Vector2 minimapSize, float FOV){
+    Vector2 pG = helperPointFromAngle(player->point, toRad(player->direction) - toRad(FOV), 10);
+    Vector2 pD = helperPointFromAngle(player->point, toRad(player->direction) + toRad(FOV), 10);
+
+    if (IsKeyDown(KEY_W))
+    {
+        if(player->point.y > 0 &&
+        pG.y > 0 &&
+        pD.y > 0) player->point.y -= .1f;
+    }
+    else if (IsKeyDown(KEY_S))
+    {
+        if(player->point.y < minimapSize.y && 
+        pG.y < minimapSize.y &&
+        pD.y < minimapSize.y) player->point.y += .1f;
+    }
+    else if (IsKeyDown(KEY_A))
+    {
+        if(player->point.x > 0 &&
+        pG.x > 0 &&
+        pD.x > 0) player->point.x -= .1f;
+    }
+    else if (IsKeyDown(KEY_D))
+    {
+        if(player->point.x < minimapSize.x &&
+        pG.x < minimapSize.x &&
+        pD.x < minimapSize.x) player->point.x += .1f;
+    }
+    else if (IsKeyDown(KEY_LEFT))
+    {
+        if(!borderhit(pG, NULL, minimapSize.x, minimapSize.y)) player->direction -= .2f;
+    }
+    else if (IsKeyDown(KEY_RIGHT))
+    {
+        if(!borderhit(pD, NULL, minimapSize.x, minimapSize.y)) player->direction += .2f;
+    }
+}
+
 
 int main(void)
 {
@@ -37,7 +75,7 @@ int main(void)
     const int screenWidth = screenPx * 16;
     const int screenHeight = screenPx * 9;
 
-    Vector2 cellSize = {15, 15};
+    Vector2 cellSize = {25, 25};
     //Vector2 cellSize = {screenWidth / mapSize, screenHeight / mapSize};
     const Vector2 minimapSize = {cellSize.x * mapSize, cellSize.y * mapSize};
 
@@ -57,48 +95,25 @@ int main(void)
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
+        float FOV = 30;
+        
+        rayFOV(cellSize, p1MM, minimapSize.x, minimapSize.y, FOV);
+        
         drawGrid(cellSize, minimapSize.x, minimapSize.y);
         //drawGrid(cellSize, screenWidth, screenHeight);
 
         //DrawCircleV(p1.point, 5, RED);
-        DrawCircleV(p1MM.point, 5, RED);
+        DrawCircleV(p1MM.point, 3, RED);
 
-        float FOV = 30;
 
         //rayFOV(cellSize, p1, screenWidth, screenHeight, FOV);
-        rayFOV(cellSize, p1MM, minimapSize.x, minimapSize.y, FOV);
         
         
         //drawFOV(p1, FOV);
         //drawFOV(p1MM, FOV);
 
-            if(!borderhit(p1MM.point, NULL, minimapSize.x, minimapSize.y)) {
-            if (IsKeyDown(KEY_W))
-            {
-                p1MM.point.y -= .1f;
-            }
-            else if (IsKeyDown(KEY_S))
-            {
-                p1MM.point.y += .1f;
-            }
-            else if (IsKeyDown(KEY_A))
-            {
-                p1MM.point.x -= .1f;
-            }
-            else if (IsKeyDown(KEY_D))
-            {
-                p1MM.point.x += .1f;
-            }
-            else if (IsKeyDown(KEY_LEFT))
-            {
-                p1MM.direction -= .2f;
-            }
-            else if (IsKeyDown(KEY_RIGHT))
-            {
-                p1MM.direction += .2f;
-            }
-        }
-
+        playerMouvement(&p1MM, minimapSize, FOV);
+        
         EndDrawing();
     }
 

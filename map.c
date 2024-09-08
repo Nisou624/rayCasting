@@ -67,7 +67,8 @@ bool hittingWall(Vector2 cellSize, Vector2 p1, Vector2 p2, Vector2 *hitPoint){
     };
 
     if(map[(int)cell.y][(int)cell.x] == 1) {
-        if(hitPoint != NULL) hitPoint = &cell;
+        Vector2 wallPoint = {snap(p2.x, d.x, cellSize.x), snap(p2.y, d.y, cellSize.y)};
+        if(hitPoint != NULL) hitPoint = &wallPoint; //TODO: Normalement frat
         return true; 
     }
     else return false;
