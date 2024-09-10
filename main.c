@@ -66,7 +66,6 @@ void playerMouvement(player *player, Vector2 minimapSize, float FOV){
     }
 }
 
-
 int main(void)
 {
 
@@ -79,7 +78,7 @@ int main(void)
     //Vector2 cellSize = {screenWidth / mapSize, screenHeight / mapSize};
     const Vector2 minimapSize = {cellSize.x * mapSize, cellSize.y * mapSize};
 
-    Vector2 pPoint = {578, 600};
+    Vector2 pPoint = {620, 485};
 
     player p1MM = {posInMap(pPoint, (Vector2){screenWidth, screenHeight}, minimapSize), -100};
     player p1 = {pPoint, 0};
@@ -95,9 +94,12 @@ int main(void)
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        float FOV = 30;
+        float FOV = 45;
         
+        //DrawLineEx((Vector2){640, 0}, (Vector2) {640, 720}, 1.0f, BLACK);
         rayFOV(cellSize, p1MM, minimapSize.x, minimapSize.y, FOV);
+
+        //DrawRectangleV((Vector2){0, 0}, minimapSize, LIGHTGRAY);
         
         drawGrid(cellSize, minimapSize.x, minimapSize.y);
         //drawGrid(cellSize, screenWidth, screenHeight);

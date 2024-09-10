@@ -73,6 +73,15 @@ void drawRay(Vector2 cellSize, Vector2 p1, Vector2 p2, Vector2 *wallPoint, int m
         DrawCircleV(nPoint2, 1, GOLD);
         nPoint1 = nPoint2;
     }
+    DrawCircleLinesV(*wallPoint, 5, RED);
+}
+
+void castRay(Vector2 cellSize, Vector2 p1, Vector2 p2, Vector2 *wallPoint, int mapWidth, int mapHeight){
+    Vector2 nPoint1 = drawNextPoint(p1, p2, cellSize);
+    while(!hittingWall(cellSize, p1, nPoint1, wallPoint) && !borderhit(nPoint1, wallPoint, mapWidth, mapHeight)){
+        Vector2 nPoint2 = drawNextPoint(p2, nPoint1, cellSize);
+        nPoint1 = nPoint2;
+    }
 }
 
 Vector2 helperPointFromAngle(Vector2 point, float angle, int distance){
@@ -82,35 +91,82 @@ Vector2 helperPointFromAngle(Vector2 point, float angle, int distance){
     return newPoint;
 }
 
+bool equalVec(Vector2 p1, Vector2 p2){
+    return (p1.x == p2.x) && (p1.y == p2.y);
+}
+
+Vector2 addVec(Vector2 p1, Vector2 p2){
+    return (Vector2){p1.x + p2.x, p1.y + p2.y};
+}
+
 void rayFOV(Vector2 cellSize, player player, int mapWidth, int mapHeight, float FOV){
+    float miniMapScale = 10.0f;
+    
+    
     Vector2 helperPoint = helperPointFromAngle(player.point, toRad(player.direction), 10);
 
     Vector2 wallPoint = {0, 0};
     
-    Vector2 pG = helperPointFromAngle(player.point, toRad(player.direction) - toRad(FOV), 10);
+    Vector2 pG = helperPointFromAngle(player.point, toRad(player.direction) - toRad(FOV / 2), 10);
     DrawCircleV(pG, 3, GREEN);
 
-    Vector2 pD = helperPointFromAngle(player.point, toRad(player.direction) + toRad(FOV), 10);
+    Vector2 pD = helperPointFromAngle(player.point, toRad(player.direction) + toRad(FOV / 2), 10);
     DrawCircleV(pD, 3, BLUE);
 
-    Vector2 d = distance(pG, pD);
+    Vector2 dV = distance(pG, pD);
+    Vector2 count = {0, 0};
+    
+    for (int x = 0; x < 1280; x++) {
+        // Calculate the angle corresponding to this screen pixel
+        float angle = toRad(player.direction - FOV / 2.0f) + (x / (float)1280) * toRad(FOV);
 
-    for (float x = toRad(player.direction) - toRad(FOV); x <= toRad(player.direction) + toRad(FOV); x+= toRad(1))
+        // Cast ray from player's position to the angle
+        drawRay(cellSize, player.point, helperPointFromAngle(player.point, angle, 10), &wallPoint, mapWidth, mapHeight);
+
+        // Distance to the wall
+        float distance = (distanceVec(player.point, wallPoint));
+        float distanceCorrected = distance * cosf(angle - toRad(player.direction)); // Correct for fisheye effect
+
+        // Calculate wall height based on distance
+        float wallH = 720 / (distanceCorrected / (10));
+
+        // Define top and bottom positions of the wall
+        Vector2 wallBegin = { x, (720 / 2) - (wallH / 2) };
+        Vector2 wallEnd = { x, (720 / 2) + (wallH / 2) };
+
+        // Draw the wall slice (1-pixel wide rectangle)
+        DrawLineEx(wallBegin, wallEnd, 1.0f, BLACK);
+        //DrawRectangleV(wallBegin, (Vector2){1, wallH}, RED);
+    }
+    
+    /*
+    float angleStep = toRad(FOV) / 1280;
+    for (float x = toRad(player.direction - (FOV / 2.0f)); x <= toRad(player.direction + (FOV / 2.0f)); x+= angleStep)
     {
         drawRay(cellSize, player.point, helperPointFromAngle(player.point, x, 10), &wallPoint, mapWidth, mapHeight);
-        float d = distanceVec(player.point, wallPoint);
+        float d = (distanceVec(helperPoint, wallPoint) + 10) * cosf(x - toRad(player.direction));
 
         float wallH = 720 / d;
 
-        float wallX = (x / (toRad(player.direction) + toRad(FOV))) * 1280; // TODO: DEUXIEME PROBLEME
+        float index = (x - toRad(player.direction - FOV)) / toRad(0.5f);
+        float indexT = (toRad(player.direction + FOV) - toRad(player.direction - FOV)) / toRad(0.5f);
 
-        Vector2 wallBegin = {wallX, (720/ 2) -  (wallH / 2)};
-        Vector2 wallEnd = {wallX, (720/ 2) +  (wallH / 2)};
+        float wallX = ( index / //ray index = (actual iteration - initial iteration) / step
+                        indexT) // total number of rays = (final iteration - initial iteration) / step
+                         * 1280; // TODO: DEUXIEME PROBLEME
 
-        DrawLineEx(wallBegin, wallEnd, 2.0f, RED);
+        //float wallX = (x / (toRad(player.direction + FOV))) * 1280; // TODO: DEUXIEME PROBLEME
+
+        Vector2 wallBegin = { wallX, ((720 - wallH) / 2)};
+        Vector2 wallEnd = { wallX, ((720 + wallH) / 2)};
+
+        DrawLineEx(wallBegin, wallEnd, 1.0f, BLACK);
     }
+    */
+    
     
 }
+
 
 void drawFOV(player player, float FOV){
     Vector2 helperPoint = helperPointFromAngle(player.point, toRad(player.direction), 30);

@@ -32,7 +32,7 @@ void drawGrid(Vector2 cellSize, int screenWidth, int screenHeight)
         for (size_t j = 0; j < mapSize; j++)
         {
             if(map[i][j] == 1){
-                DrawRectangle(j * cellSize.x, i * cellSize.y, cellSize.x, cellSize.y, LIGHTGRAY);
+                DrawRectangle(j * cellSize.x, i * cellSize.y, cellSize.x, cellSize.y, PURPLE);
             }
         }
         
@@ -68,7 +68,7 @@ bool hittingWall(Vector2 cellSize, Vector2 p1, Vector2 p2, Vector2 *hitPoint){
 
     if(map[(int)cell.y][(int)cell.x] == 1) {
         Vector2 wallPoint = {snap(p2.x, d.x, cellSize.x), snap(p2.y, d.y, cellSize.y)};
-        if(hitPoint != NULL) hitPoint = &wallPoint; //TODO: Normalement frat
+        *hitPoint = p2; //TODO: Normalement frat
         return true; 
     }
     else return false;
