@@ -18,9 +18,9 @@ float snap(float x, float dx, float cellSize);
 
 Vector2 drawNextPoint(Vector2 p1, Vector2 p2, Vector2 cellSize);
 
-void drawRay(Vector2 cellSize, Vector2 p1, Vector2 p2, Vector2 *wallPoint, int mapWidth, int mapHeight);
+void drawRay(Vector2 cellSize, Vector2 p1, Vector2 p2, Vector2 *wallPoint, Color *wallColor, int mapWidth, int mapHeight);
 
-Vector2 helperPointFromAngle(Vector2 point, float angle, int distance);
+Vector2 helperPointFromAngle(Vector2 point, float angle, float distance);
 
 void rayFOV(Vector2 cellSize, player player, int mapWidth, int mapHeight, float FOV);
 

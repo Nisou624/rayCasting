@@ -28,41 +28,44 @@ void drawPoint(Vector2 point, Vector2 minimapSize){
     }
 }
 
-void playerMouvement(player *player, Vector2 minimapSize, float FOV){
-    Vector2 pG = helperPointFromAngle(player->point, toRad(player->direction) - toRad(FOV), 10);
-    Vector2 pD = helperPointFromAngle(player->point, toRad(player->direction) + toRad(FOV), 10);
+void playerMouvement(player *player, Vector2 minimapSize, Vector2 cellSize, float FOV){
+    Vector2 pG = helperPointFromAngle(player->point, toRad(player->direction) - toRad(FOV / 2), 10);
+    Vector2 pD = helperPointFromAngle(player->point, toRad(player->direction) + toRad(FOV / 2), 10);
+
+    Vector2 nextPoint = {0, 0};
 
     if (IsKeyDown(KEY_W))
     {
-        if(player->point.y > 0 &&
-        pG.y > 0 &&
-        pD.y > 0) player->point.y -= .1f;
+        nextPoint = helperPointFromAngle(player->point, toRad(player->direction), .1f);
+        if(!borderhit(nextPoint, NULL, minimapSize.x, minimapSize.y) && !hittingWall(cellSize, player->point, nextPoint, NULL, NULL) &&
+            !borderhit(pG, NULL, minimapSize.x, minimapSize.y) && !hittingWall(cellSize, player->point, pG, NULL, NULL) &&
+            !borderhit(pD, NULL, minimapSize.x, minimapSize.y) && !hittingWall(cellSize, player->point, pD, NULL, NULL)) player->point = nextPoint;
     }
     else if (IsKeyDown(KEY_S))
     {
-        if(player->point.y < minimapSize.y && 
-        pG.y < minimapSize.y &&
-        pD.y < minimapSize.y) player->point.y += .1f;
+        nextPoint = helperPointFromAngle(player->point, toRad(player->direction), -0.1f);
+        if(!borderhit(nextPoint, NULL, minimapSize.x, minimapSize.y) &&
+            !hittingWall(cellSize, player->point, nextPoint, NULL, NULL)) player->point = nextPoint;
     }
     else if (IsKeyDown(KEY_A))
     {
-        if(player->point.x > 0 &&
-        pG.x > 0 &&
-        pD.x > 0) player->point.x -= .1f;
+        if(!borderhit(pG, NULL, minimapSize.x, minimapSize.y) && 
+            !hittingWall(cellSize, player->point, pG, NULL, NULL)) player->point = helperPointFromAngle(player->point, toRad(player->direction - 90), .1f);
     }
     else if (IsKeyDown(KEY_D))
     {
-        if(player->point.x < minimapSize.x &&
-        pG.x < minimapSize.x &&
-        pD.x < minimapSize.x) player->point.x += .1f;
+        if(!borderhit(pD, NULL, minimapSize.x, minimapSize.y) &&
+            !hittingWall(cellSize, player->point, pD, NULL, NULL)) player->point = helperPointFromAngle(player->point, toRad(player->direction + 90), .1f);
     }
     else if (IsKeyDown(KEY_LEFT))
     {
-        if(!borderhit(pG, NULL, minimapSize.x, minimapSize.y)) player->direction -= .2f;
+        if(!borderhit(pG, NULL, minimapSize.x, minimapSize.y) &&
+            !hittingWall(cellSize, player->point, pG, NULL, NULL)) player->direction -= .15f;
     }
     else if (IsKeyDown(KEY_RIGHT))
     {
-        if(!borderhit(pD, NULL, minimapSize.x, minimapSize.y)) player->direction += .2f;
+        if(!borderhit(pD, NULL, minimapSize.x, minimapSize.y) &&
+            !hittingWall(cellSize, player->point, pD, NULL, NULL)) player->direction += .15f;
     }
 }
 
@@ -78,9 +81,9 @@ int main(void)
     //Vector2 cellSize = {screenWidth / mapSize, screenHeight / mapSize};
     const Vector2 minimapSize = {cellSize.x * mapSize, cellSize.y * mapSize};
 
-    Vector2 pPoint = {620, 485};
+    Vector2 pPoint = {700, 485};
 
-    player p1MM = {posInMap(pPoint, (Vector2){screenWidth, screenHeight}, minimapSize), -100};
+    player p1MM = {posInMap(pPoint, (Vector2){screenWidth, screenHeight}, minimapSize), -90};
     player p1 = {pPoint, 0};
 
     // Vector2 point = {1054, 233};
@@ -114,7 +117,7 @@ int main(void)
         //drawFOV(p1, FOV);
         //drawFOV(p1MM, FOV);
 
-        playerMouvement(&p1MM, minimapSize, FOV);
+        playerMouvement(&p1MM, minimapSize, cellSize, FOV);
         
         EndDrawing();
     }
