@@ -65,15 +65,15 @@ Vector2 drawNextPoint(Vector2 p1, Vector2 p2, Vector2 cellSize){
     
 }
 
-void drawRay(Vector2 cellSize, Vector2 p1, Vector2 p2, Vector2 *wallPoint, Color *wallColor, int mapWidth, int mapHeight){
+void drawRay(Vector2 cellSize, Vector2 p1, Vector2 p2, Vector2 *wallPoint, Vector2 *borderPoint, Color *wallColor, int mapWidth, int mapHeight){
     Vector2 nPoint1 = drawNextPoint(p1, p2, cellSize);
     DrawCircleV(nPoint1, 1, GOLD);
-    while(!hittingWall(cellSize, p1, nPoint1, wallPoint, wallColor) && !borderhit(nPoint1, wallPoint, mapWidth, mapHeight)){
+    while(!hittingWall(cellSize, p1, nPoint1, wallPoint, wallColor) && !borderhit(nPoint1, borderPoint, mapWidth, mapHeight)){
         Vector2 nPoint2 = drawNextPoint(p2, nPoint1, cellSize);
         DrawCircleV(nPoint2, 1, GOLD);
         nPoint1 = nPoint2;
     }
-    DrawCircleLinesV(*wallPoint, 5, RED);
+    //DrawCircleLinesV(*wallPoint, 5, RED);
 }
 
 void castRay(Vector2 cellSize, Vector2 p1, Vector2 p2, Vector2 *wallPoint, int mapWidth, int mapHeight){
@@ -99,6 +99,7 @@ Vector2 addVec(Vector2 p1, Vector2 p2){
     return (Vector2){p1.x + p2.x, p1.y + p2.y};
 }
 
+///TODO: for drawing the walls : when border.x != 0 || != screenWidth draw it like a wall else draw it like a border* 
 void rayFOV(Vector2 cellSize, player player, int mapWidth, int mapHeight, float FOV){
     float miniMapScale = 10.0f;
     
@@ -106,6 +107,7 @@ void rayFOV(Vector2 cellSize, player player, int mapWidth, int mapHeight, float 
     Vector2 helperPoint = helperPointFromAngle(player.point, toRad(player.direction), 10);
 
     Vector2 wallPoint = {0, 0};
+    Vector2 borderPoint = {0, 0};
     Color wallColor;
     
     Vector2 pG = helperPointFromAngle(player.point, toRad(player.direction) - toRad(FOV / 2), 10);
@@ -119,13 +121,15 @@ void rayFOV(Vector2 cellSize, player player, int mapWidth, int mapHeight, float 
     
     for (int x = 0; x < 1280; x++) {
         wallColor = BLACK;
+        wallPoint = (Vector2){0, 0};
         // Calculate the angle corresponding to this screen pixel
         float angle = toRad(player.direction - FOV / 2.0f) + (x / (float)1280) * toRad(FOV);
 
         // Cast ray from player's position to the angle
-        drawRay(cellSize, player.point, helperPointFromAngle(player.point, angle, 10), &wallPoint, &wallColor, mapWidth, mapHeight);
+        drawRay(cellSize, player.point, helperPointFromAngle(player.point, angle, 10), &wallPoint, &borderPoint, &wallColor, mapWidth, mapHeight);
 
-        // Distance to the wall
+        if(wallPoint.x != 0 && wallPoint.y != 0){
+            // Distance to the wall
         float distance = (distanceVec(player.point, wallPoint));
         float distanceCorrected = distance * cosf(angle - toRad(player.direction)); // Correct for fisheye effect
 
@@ -138,6 +142,8 @@ void rayFOV(Vector2 cellSize, player player, int mapWidth, int mapHeight, float 
 
         // Draw the wall slice (1-pixel wide rectangle)
         DrawLineEx(wallBegin, wallEnd, 1.0f, wallColor);
+        }
+        
     }    
 }
 
@@ -145,9 +151,6 @@ void rayFOV(Vector2 cellSize, player player, int mapWidth, int mapHeight, float 
 
 void drawFOV(player player, float FOV){
     Vector2 helperPoint = helperPointFromAngle(player.point, toRad(player.direction), 10);
-    
-    float dy = distance(helperPoint, player.point).y;
-
     Vector2 pG = helperPointFromAngle(player.point, toRad(player.direction) - toRad(FOV/2), 10);
     DrawCircleV(pG, 3, GREEN);
     Vector2 pD = helperPointFromAngle(player.point, toRad(player.direction) + toRad(FOV/2), 10);
