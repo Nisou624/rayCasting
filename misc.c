@@ -1,5 +1,17 @@
 #include "misc.h"
 
+Color darkenColor(Color color, float distance) {
+    printf("Distance: %f\n", distance);
+    float darkenAmount =  distance;
+    //float darkenAmount = distance / 720.0f;
+    Color darkenedColor;
+    darkenedColor.r = (unsigned char)(color.r * darkenAmount);
+    darkenedColor.g = (unsigned char)(color.g * darkenAmount);
+    darkenedColor.b = (unsigned char)(color.b * darkenAmount);
+    darkenedColor.a = color.a; // Preserve the alpha value
+    return darkenedColor;
+}
+
 float distanceVec(Vector2 p1, Vector2 p2){
     return sqrtf(powf(p2.x - p1.x, 2.0f) + powf(p2.y - p1.y, 2.0f));
 }
@@ -65,20 +77,22 @@ Vector2 drawNextPoint(Vector2 p1, Vector2 p2, Vector2 cellSize){
     
 }
 
-void drawRay(Vector2 cellSize, Vector2 p1, Vector2 p2, Vector2 *wallPoint, Vector2 *borderPoint, Color *wallColor, int mapWidth, int mapHeight){
+void drawRay(Vector2 cellSize, Vector2 p1, Vector2 p2, float angle, Vector2 *wallPoint, Vector2 *borderPoint, Color *wallColor){
     Vector2 nPoint1 = drawNextPoint(p1, p2, cellSize);
     DrawCircleV(nPoint1, 1, GOLD);
-    while(!hittingWall(cellSize, p1, nPoint1, wallPoint, wallColor) && !borderhit(nPoint1, borderPoint, mapWidth, mapHeight)){
+    while(!hittingWall(cellSize, p1, nPoint1, wallPoint, wallColor) && !borderhit(nPoint1, borderPoint, angle)){
         Vector2 nPoint2 = drawNextPoint(p2, nPoint1, cellSize);
         DrawCircleV(nPoint2, 1, GOLD);
         nPoint1 = nPoint2;
     }
-    //DrawCircleLinesV(*wallPoint, 5, RED);
+    DrawCircleLinesV(*wallPoint, 1, RED);
+    DrawCircleV(*borderPoint, 3, RED);
 }
 
-void castRay(Vector2 cellSize, Vector2 p1, Vector2 p2, Vector2 *wallPoint, int mapWidth, int mapHeight){
+
+void castRay(Vector2 cellSize, Vector2 p1, Vector2 p2, Vector2 *wallPoint){
     Vector2 nPoint1 = drawNextPoint(p1, p2, cellSize);
-    while(!hittingWall(cellSize, p1, nPoint1, wallPoint, NULL) && !borderhit(nPoint1, wallPoint, mapWidth, mapHeight)){
+    while(!hittingWall(cellSize, p1, nPoint1, wallPoint, NULL) && !borderhit(nPoint1, wallPoint, 0)){
         Vector2 nPoint2 = drawNextPoint(p2, nPoint1, cellSize);
         nPoint1 = nPoint2;
     }
@@ -99,8 +113,7 @@ Vector2 addVec(Vector2 p1, Vector2 p2){
     return (Vector2){p1.x + p2.x, p1.y + p2.y};
 }
 
-///TODO: for drawing the walls : when border.x != 0 || != screenWidth draw it like a wall else draw it like a border* 
-void rayFOV(Vector2 cellSize, player player, int mapWidth, int mapHeight, float FOV){
+void rayFOV(Vector2 cellSize, player player, float FOV, Texture2D texture){
     float miniMapScale = 10.0f;
     
     
@@ -111,10 +124,8 @@ void rayFOV(Vector2 cellSize, player player, int mapWidth, int mapHeight, float 
     Color wallColor;
     
     Vector2 pG = helperPointFromAngle(player.point, toRad(player.direction) - toRad(FOV / 2), 10);
-    DrawCircleV(pG, 3, GREEN);
 
     Vector2 pD = helperPointFromAngle(player.point, toRad(player.direction) + toRad(FOV / 2), 10);
-    DrawCircleV(pD, 3, BLUE);
 
     Vector2 dV = distance(pG, pD);
     Vector2 count = {0, 0};
@@ -122,31 +133,32 @@ void rayFOV(Vector2 cellSize, player player, int mapWidth, int mapHeight, float 
     for (int x = 0; x < 1280; x++) {
         wallColor = BLACK;
         wallPoint = (Vector2){0, 0};
+        borderPoint = (Vector2){0, 0};
         // Calculate the angle corresponding to this screen pixel
         float angle = toRad(player.direction - FOV / 2.0f) + (x / (float)1280) * toRad(FOV);
 
         // Cast ray from player's position to the angle
-        drawRay(cellSize, player.point, helperPointFromAngle(player.point, angle, 10), &wallPoint, &borderPoint, &wallColor, mapWidth, mapHeight);
-
+        drawRay(cellSize, player.point, helperPointFromAngle(player.point, angle, 10), angle, &wallPoint, &borderPoint, &wallColor);
+        
+        drawWall(player, borderPoint, BLACK, x, (Vector2){1280, 720}, FOV);
         if(wallPoint.x != 0 && wallPoint.y != 0){
-            // Distance to the wall
-        float distance = (distanceVec(player.point, wallPoint));
-        float distanceCorrected = distance * cosf(angle - toRad(player.direction)); // Correct for fisheye effect
-
-        // Calculate wall height based on distance
-        float wallH = 720 / (distanceCorrected / (10));
-
-        // Define top and bottom positions of the wall
-        Vector2 wallBegin = { x, (720 / 2) - (wallH / 2) };
-        Vector2 wallEnd = { x, (720 / 2) + (wallH / 2) };
-
-        // Draw the wall slice (1-pixel wide rectangle)
-        DrawLineEx(wallBegin, wallEnd, 1.0f, wallColor);
+            drawWall(player, wallPoint, wallColor, x, (Vector2){1280, 720}, FOV);
+            //DrawTexturePro(texture, (Rectangle){x, 0, 1, 720}, (Rectangle){x, wallBegin.y, 1, wallH}, (Vector2){0, 0}, 0.0f, WHITE);
         }
         
     }    
 }
 
+//TODO: color walls
+void drawWall(player player, Vector2 wallPoint, Color wallColor, int iter, Vector2 screenSize, float FOV){
+    float angle = (toRad(player.direction - FOV / 2.0f)) + ((iter / screenSize.x) * toRad(FOV));
+    float distance = distanceVec(player.point, wallPoint);
+    float distanceCorrected = distance * cosf(angle - toRad(player.direction)); //
+    float wallH = screenSize.y / (distanceCorrected / 10); // should be: screenheight / v.dot(d) where v = wallpoint sub player.point && d = 
+    Vector2 wallBegin = {iter, (screenSize.y / 2) - (wallH / 2)};
+    Vector2 wallEnd = {iter, (screenSize.y / 2) + (wallH / 2)};
+    DrawLineEx(wallBegin, wallEnd, 1.0f, wallColor); //darkenColor(wallColor, 1468 / distanceCorrected / 10)
+}
 
 
 void drawFOV(player player, float FOV){

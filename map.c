@@ -3,6 +3,12 @@
 
 const int mapSize = 10;
 
+Vector2 cellSize = {25, 25};
+
+Vector2 miniMapSize = {250, 250}; //{cellSize.x * mapSize, cellSize.y * mapSize}
+
+Vector2 screenSize = {1280, 720};
+
 const int map[10][10]= {
     {1, 2, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 0, 3, 0, 0, 0, 0, 0, 0, 0},
@@ -43,22 +49,35 @@ void drawGrid(Vector2 cellSize, int screenWidth, int screenHeight)
     }
 }
 
-bool borderhit(Vector2 point, Vector2 *border, int screenWidth, int screenHeight){
-    if (point.x < 0)
+bool borderhit(Vector2 point, Vector2 *border, float angle){
+
+   Vector2 b;
+   float dx, dy;
+
+    if (point.x <= 0)
     {
-        if (border != NULL) border->x = 0;
-        return true;
-    }else if (point.x >= screenWidth){
-        if (border != NULL) border->x = screenWidth;
-        return true;
-    }else if (point.y < 0){
-        if (border != NULL) border->y = 0;
-        return true;
-    }else if (point.y >= screenHeight){
-        if (border != NULL) border->y = screenHeight;
-        return true;
+        b = (Vector2){0, point.y - (point.x / tanf(angle))};
+        if (border != NULL) *border = b;
+        
+    }else if (point.x >= miniMapSize.x){
+        dx = point.x - miniMapSize.x;
+        b = (Vector2){miniMapSize.x, point.y - (dx * tanf(angle))};
+        if (border != NULL) *border = b;
+        
+    }else if (point.y <= 0){
+        b = (Vector2){point.x - (point.y * tanf(angle)), 0};
+        if (border != NULL) *border = b;
+        
+    }else if (point.y >= miniMapSize.y){
+        dy = point.y - miniMapSize.y;
+        b = (Vector2){point.x - (dy * tanf(angle)), miniMapSize.y};
+        if (border != NULL) *border = b;
+        
+    }else{
+        return false;
     }
-    return false;
+
+    return true;
 }
 
 bool hittingWall(Vector2 cellSize, Vector2 p1, Vector2 p2, Vector2 *hitPoint, Color *color){
